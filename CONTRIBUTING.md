@@ -1,6 +1,6 @@
 # Contributing to Terraform GCP 3-Tier Application
 
-We love your input! We want to make contributing to this project as easy and transparent as possible, whether it's:
+I'd love your input! I want to make contributing to this project as easy and transparent as possible, whether it's:
 
 - Reporting a bug
 - Discussing the current state of the code
@@ -62,14 +62,6 @@ We use GitHub issues to track public bugs. Report a bug by [opening a new issue]
 - What you expected would happen
 - What actually happens
 - Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
-
-## Feature Requests
-
-We also use GitHub issues to track feature requests. When requesting a feature:
-
-- Explain the use case and why this would be valuable
-- Include examples if possible
-- Consider if this fits the project's scope
 
 ## Project Structure
 
