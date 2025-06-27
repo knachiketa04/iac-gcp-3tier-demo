@@ -1,0 +1,151 @@
+{% extends "base.html" %} {% block title %}Quote of the Day - Wisdom Quotes{%
+endblock %} {% block content %}
+<h1 style="text-align: center; color: #667eea; margin-bottom: 2rem">
+  🌅 Quote of the Day
+</h1>
+
+<div id="quote-container">
+  <div class="loading">
+    <h3>Loading your daily wisdom... ✨</h3>
+  </div>
+</div>
+
+<div style="text-align: center; margin: 2rem 0">
+  <button
+    onclick="loadQuoteOfTheDay()"
+    class="btn"
+    style="
+      background: #667eea;
+      color: white;
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+    "
+  >
+    🔄 Get New Quote
+  </button>
+</div>
+
+<div
+  style="
+    background: #e9ecef;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-top: 2rem;
+  "
+>
+  <h3 style="color: #495057; margin-bottom: 1rem">
+    🏗️ 3-Tier Architecture Demo
+  </h3>
+  <div
+    style="
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+    "
+  >
+    <div
+      style="
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+      "
+    >
+      <h4 style="color: #28a745; margin-bottom: 0.5rem">
+        🎨 Presentation Tier
+      </h4>
+      <p>This beautiful web interface built with HTML, CSS, and JavaScript</p>
+    </div>
+    <div
+      style="
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid #ffc107;
+      "
+    >
+      <h4 style="color: #fd7e14; margin-bottom: 0.5rem">⚙️ Application Tier</h4>
+      <p>Flask REST API handling business logic and data processing</p>
+    </div>
+    <div
+      style="
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid #dc3545;
+      "
+    >
+      <h4 style="color: #dc3545; margin-bottom: 0.5rem">🗄️ Data Tier</h4>
+      <p>PostgreSQL database storing quotes, authors, and votes</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function loadQuoteOfTheDay() {
+    const container = document.getElementById("quote-container");
+    container.innerHTML =
+      '<div class="loading"><h3>Loading your daily wisdom... ✨</h3></div>';
+
+    try {
+      const response = await fetch("/api/quote-of-the-day");
+      const quote = await response.json();
+
+      if (quote.error) {
+        container.innerHTML = `<div class="error">Error: ${quote.error}</div>`;
+        return;
+      }
+
+      const voteScore = quote.upvotes - quote.downvotes;
+      const scoreColor = voteScore >= 0 ? "#28a745" : "#dc3545";
+
+      container.innerHTML = `
+            <div class="quote-card">
+                <div class="quote-text">"${quote.text}"</div>
+                <div class="quote-author">— ${quote.author_name}</div>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <span style="background: #f8f9fa; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;">
+                        📚 ${
+                          quote.category.charAt(0).toUpperCase() +
+                          quote.category.slice(1)
+                        }
+                    </span>
+                    <span style="background: ${scoreColor}; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; margin-left: 1rem;">
+                        Score: ${voteScore} (👍 ${quote.upvotes} | 👎 ${
+        quote.downvotes
+      })
+                    </span>
+                </div>
+                <div class="vote-buttons">
+                    <button onclick="vote(${
+                      quote.id
+                    }, 'up')" class="btn btn-up">
+                        👍 Upvote (${quote.upvotes})
+                    </button>
+                    <button onclick="vote(${
+                      quote.id
+                    }, 'down')" class="btn btn-down">
+                        👎 Downvote (${quote.downvotes})
+                    </button>
+                </div>
+            </div>
+        `;
+
+      // Show author bio if available
+      if (quote.author_bio) {
+        container.innerHTML += `
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-top: 1rem; font-style: italic; color: #6c757d;">
+                    💡 About ${quote.author_name}: ${quote.author_bio}
+                </div>
+            `;
+      }
+    } catch (error) {
+      container.innerHTML =
+        '<div class="error">Failed to load quote. Please try again.</div>';
+    }
+  }
+
+  // Load quote when page loads
+  document.addEventListener("DOMContentLoaded", loadQuoteOfTheDay);
+</script>
+{% endblock %}

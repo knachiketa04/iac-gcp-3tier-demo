@@ -1,0 +1,170 @@
+{% extends "base.html" %} {% block title %}Authors - Wisdom Quotes{% endblock %}
+{% block content %}
+<h1 style="text-align: center; color: #667eea; margin-bottom: 2rem">
+  ✍️ Meet Our Authors
+</h1>
+
+<div id="authors-container">
+  <div class="loading">
+    <h3>Loading authors... 👨‍💼👩‍💼</h3>
+  </div>
+</div>
+
+<div
+  style="
+    background: #e9ecef;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-top: 2rem;
+  "
+>
+  <h3 style="color: #495057; margin-bottom: 1rem">🗄️ Data Tier Showcase</h3>
+  <p>This page demonstrates the <strong>Data Tier</strong> capabilities:</p>
+  <ul style="margin-left: 2rem; margin-top: 1rem">
+    <li>
+      🔗 <strong>Relationships:</strong> Authors linked to their quotes via
+      foreign keys
+    </li>
+    <li>
+      📊 <strong>Aggregation:</strong> COUNT queries to show quote statistics
+    </li>
+    <li>
+      🗃️ <strong>Complex Queries:</strong> JOINs between authors and quotes
+      tables
+    </li>
+    <li>
+      📈 <strong>Analytics:</strong> Real-time statistics from the database
+    </li>
+  </ul>
+</div>
+
+<script>
+  async function loadAuthors() {
+    const container = document.getElementById("authors-container");
+
+    try {
+      const response = await fetch("/api/authors");
+      const authors = await response.json();
+
+      if (authors.error) {
+        container.innerHTML = `<div class="error">Error: ${authors.error}</div>`;
+        return;
+      }
+
+      if (authors.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 2rem; color: #6c757d;">
+                <h3>No authors found 🤷‍♀️</h3>
+            </div>`;
+        return;
+      }
+
+      let html = `<div style="margin-bottom: 2rem; color: #6c757d; text-align: center;">
+            <strong>${authors.length}</strong> inspiring authors in our collection
+        </div>`;
+
+      html +=
+        '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">';
+
+      authors.forEach((author, index) => {
+        const isTopAuthor = index < 3;
+        const cardStyle = isTopAuthor
+          ? "border: 3px solid #ffd700; box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);"
+          : "";
+
+        html += `
+                <div class="quote-card" style="${cardStyle} text-align: center;">
+                    ${
+                      isTopAuthor
+                        ? '<div style="background: #ffd700; color: #333; padding: 0.5rem; border-radius: 20px; font-weight: bold; margin-bottom: 1rem;">🏆 Top Author</div>'
+                        : ""
+                    }
+                    
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">
+                        ${getAuthorEmoji(author.name)}
+                    </div>
+                    
+                    <h3 style="color: #667eea; margin-bottom: 1rem; font-size: 1.5rem;">
+                        ${author.name}
+                    </h3>
+                    
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <p style="font-style: italic; color: #6c757d; line-height: 1.5;">
+                            ${author.bio || "No biography available."}
+                        </p>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: center; gap: 2rem; margin-top: 1rem;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; color: #28a745; font-weight: bold;">
+                                ${author.quote_count}
+                            </div>
+                            <div style="font-size: 0.9rem; color: #6c757d;">
+                                ${author.quote_count === 1 ? "Quote" : "Quotes"}
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; color: #667eea; font-weight: bold;">
+                                ${index + 1}
+                            </div>
+                            <div style="font-size: 0.9rem; color: #6c757d;">
+                                Rank
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+      });
+
+      html += "</div>";
+
+      // Add summary statistics
+      const totalQuotes = authors.reduce(
+        (sum, author) => sum + author.quote_count,
+        0
+      );
+      const avgQuotesPerAuthor = (totalQuotes / authors.length).toFixed(1);
+
+      html += `
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 15px; margin-top: 2rem; text-align: center;">
+                <h3 style="margin-bottom: 1.5rem;">📊 Collection Statistics</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 2rem;">
+                    <div>
+                        <div style="font-size: 2.5rem; font-weight: bold;">${authors.length}</div>
+                        <div>Total Authors</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2.5rem; font-weight: bold;">${totalQuotes}</div>
+                        <div>Total Quotes</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 2.5rem; font-weight: bold;">${avgQuotesPerAuthor}</div>
+                        <div>Avg per Author</div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+      container.innerHTML = html;
+    } catch (error) {
+      container.innerHTML =
+        '<div class="error">Failed to load authors. Please try again.</div>';
+    }
+  }
+
+  function getAuthorEmoji(name) {
+    const emojiMap = {
+      "Albert Einstein": "🧠",
+      "Maya Angelou": "✍️",
+      "Steve Jobs": "💡",
+      "Nelson Mandela": "✊",
+      "Marie Curie": "🔬",
+      "Mark Twain": "📚",
+      "Oprah Winfrey": "🌟",
+    };
+    return emojiMap[name] || "👤";
+  }
+
+  // Load authors when page loads
+  document.addEventListener("DOMContentLoaded", loadAuthors);
+</script>
+{% endblock %}

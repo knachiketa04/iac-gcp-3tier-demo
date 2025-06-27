@@ -1,0 +1,145 @@
+{% extends "base.html" %} {% block title %}Browse Quotes - Wisdom Quotes{%
+endblock %} {% block content %}
+<h1 style="text-align: center; color: #667eea; margin-bottom: 2rem">
+  📖 Browse All Quotes
+</h1>
+
+<div class="category-filter">
+  <label for="categorySelect" style="font-weight: bold; margin-right: 1rem"
+    >Filter by Category:</label
+  >
+  <select id="categorySelect" onchange="loadQuotes()">
+    <option value="">All Categories</option>
+    <option value="wisdom">Wisdom</option>
+    <option value="success">Success</option>
+    <option value="attitude">Attitude</option>
+    <option value="relationships">Relationships</option>
+    <option value="innovation">Innovation</option>
+    <option value="work">Work</option>
+    <option value="perseverance">Perseverance</option>
+    <option value="education">Education</option>
+    <option value="knowledge">Knowledge</option>
+    <option value="motivation">Motivation</option>
+    <option value="dreams">Dreams</option>
+  </select>
+</div>
+
+<div id="quotes-container">
+  <div class="loading">
+    <h3>Loading quotes... 📚</h3>
+  </div>
+</div>
+
+<div
+  style="
+    background: #e9ecef;
+    padding: 2rem;
+    border-radius: 10px;
+    margin-top: 2rem;
+  "
+>
+  <h3 style="color: #495057; margin-bottom: 1rem">
+    📊 Application Tier in Action
+  </h3>
+  <p>
+    This page demonstrates the <strong>Application Tier</strong> processing your
+    requests:
+  </p>
+  <ul style="margin-left: 2rem; margin-top: 1rem">
+    <li>🔍 <strong>Filtering:</strong> REST API filters quotes by category</li>
+    <li>
+      📈 <strong>Sorting:</strong> Quotes ranked by vote score (upvotes -
+      downvotes)
+    </li>
+    <li>🔄 <strong>Real-time:</strong> Vote counts update immediately</li>
+    <li>
+      🏗️ <strong>Business Logic:</strong> Vote validation and duplicate
+      prevention
+    </li>
+  </ul>
+</div>
+
+<script>
+  async function loadQuotes() {
+    const container = document.getElementById("quotes-container");
+    const category = document.getElementById("categorySelect").value;
+
+    container.innerHTML =
+      '<div class="loading"><h3>Loading quotes... 📚</h3></div>';
+
+    try {
+      const url = category ? `/api/quotes?category=${category}` : "/api/quotes";
+      const response = await fetch(url);
+      const quotes = await response.json();
+
+      if (quotes.error) {
+        container.innerHTML = `<div class="error">Error: ${quotes.error}</div>`;
+        return;
+      }
+
+      if (quotes.length === 0) {
+        container.innerHTML = `<div style="text-align: center; padding: 2rem; color: #6c757d;">
+                <h3>No quotes found in this category 🤷‍♀️</h3>
+                <p>Try selecting a different category or browse all quotes!</p>
+            </div>`;
+        return;
+      }
+
+      let html = `<div style="margin-bottom: 1rem; color: #6c757d;">
+            <strong>${quotes.length}</strong> quotes found ${
+        category ? `in "${category}" category` : "across all categories"
+      }
+        </div>`;
+
+      quotes.forEach((quote, index) => {
+        const voteScore = quote.upvotes - quote.downvotes;
+        const scoreColor = voteScore >= 0 ? "#28a745" : "#dc3545";
+        const ranking = index + 1;
+
+        html += `
+                <div class="quote-card" style="position: relative;">
+                    <div style="position: absolute; top: 1rem; right: 1rem; background: #667eea; color: white; padding: 0.5rem; border-radius: 50%; width: 2.5rem; height: 2.5rem; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                        #${ranking}
+                    </div>
+                    <div class="quote-text">"${quote.text}"</div>
+                    <div class="quote-author">— ${quote.author_name}</div>
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <span style="background: #f8f9fa; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;">
+                            📚 ${
+                              quote.category.charAt(0).toUpperCase() +
+                              quote.category.slice(1)
+                            }
+                        </span>
+                        <span style="background: ${scoreColor}; color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; margin-left: 1rem;">
+                            Score: ${voteScore} (👍 ${quote.upvotes} | 👎 ${
+          quote.downvotes
+        })
+                        </span>
+                    </div>
+                    <div class="vote-buttons">
+                        <button onclick="vote(${
+                          quote.id
+                        }, 'up')" class="btn btn-up">
+                            👍 Upvote (${quote.upvotes})
+                        </button>
+                        <button onclick="vote(${
+                          quote.id
+                        }, 'down')" class="btn btn-down">
+                            👎 Downvote (${quote.downvotes})
+                        </button>
+                    </div>
+                </div>
+            `;
+      });
+
+      container.innerHTML = html;
+    } catch (error) {
+      container.innerHTML =
+        '<div class="error">Failed to load quotes. Please try again.</div>';
+    }
+  }
+
+  // Load quotes when page loads
+  document.addEventListener("DOMContentLoaded", loadQuotes);
+</script>
+{% endblock %}
